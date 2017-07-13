@@ -49,6 +49,10 @@ private:
     
     bool _is_connected;
     
+    void connect(tcp::resolver::iterator endpoint_iterator,
+                 boost::system::error_code error);
+    void handle_connect(const boost::system::error_code& error,
+                        tcp::resolver::iterator endpoint_iterator);
     void connection_established();
     
 };

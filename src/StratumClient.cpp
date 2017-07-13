@@ -22,27 +22,36 @@ StratumClient::~StratumClient()
     // dealloc
 }
 
-
 void StratumClient::connect()
 {
     tcp::resolver resolver(io_service);
     tcp::resolver::query query(_server_info.host, _server_info.port);
     tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-    tcp::resolver::iterator end;
     
     boost::system::error_code error = boost::asio::error::host_not_found;
     
-    while (error && endpoint_iterator != end) {
-        socket.close();
-        socket.connect(*endpoint_iterator++,
-                       error);
-    }
+    handle_connect(error, endpoint_iterator);
+}
+
+void StratumClient::connect(tcp::resolver::iterator endpoint_iterator,
+                            boost::system::error_code error)
+{
+    _is_connected = false;
+    socket.close();
+    socket.connect(*endpoint_iterator++,
+                   error);
+}
+
+void StratumClient::handle_connect(const boost::system::error_code& error,
+                                  tcp::resolver::iterator endpoint_iterator)
+{
+    tcp::resolver::iterator end;
     
-    if (error) {
-        throw boost::system::system_error(error);
-    }
-    else {
+    if (!error) {
         connection_established();
+    }
+    else if (endpoint_iterator != end) {
+        connect(endpoint_iterator, error);
     }
 }
 
